@@ -26,7 +26,6 @@ plot1 <- ggplot(data_sum,
   
   geom_line() +
   geom_point(size = 2.5) +
-  
   geom_errorbar(aes(
     ymin = mean_masslost - se,
     ymax = mean_masslost + se
@@ -34,9 +33,13 @@ plot1 <- ggplot(data_sum,
   width = 0) +
   labs(
     x = "Days of Incubation",
-    y = "% Mass Lost"
+    y = "% Mass Lost",
+    linetype = "Species",
+    shape = "Species"
   ) +
   theme_classic()
+
+plot1
 
 
 plot1_plotly <- ggplotly(plot1, margin=m)
