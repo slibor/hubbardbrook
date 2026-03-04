@@ -1,5 +1,6 @@
 library(tidyverse)
 library(plotly)
+library(dplyr)
 
 inUrl2 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/208/14/024b6acc5cb2e03a14fff5558bbffc0c"
 infile2 <- tempfile()
@@ -103,42 +104,115 @@ new_labels1 <- c(
 )
 
 
-plot5 <- ggplot(dtSums, aes(waterYr, value)) +
-  geom_line(size = 0.4) +
-  geom_point() +
-  geom_vline(xintercept = 1999,
-             linetype = "dashed",
-             size = 0.2,
-             color = "black") +
-  facet_wrap(~ vars, nrow = 6, scales = "free_y", labeller = as_labeller(new_labels1)) +
-  scale_x_continuous(
-    expand = c(0, 0),
-    limits = c(1960, 2025),
-    breaks = seq(1960, 2030, 10)
-  ) +
-  labs(x = NULL, y = NULL, color = NULL) +
-  theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    strip.background = element_blank(),
-    axis.ticks = element_line(size = 0.3),
-    strip.text = element_text(size = 8, margin = margin(b = 2)),
-    axis.text = element_text(size = 7),
-    panel.spacing = unit(0.4, "lines")
+
+dtSums <- dtSums %>%
+  mutate(vars_lab = new_labels1[as.character(vars)])
+
+vars_unique <- unique(dtSums$vars_lab)
+n <- length(vars_unique)
+
+fig_list <- lapply(vars_unique, function(v) {
+  
+  df_sub <- dtSums %>% filter(vars_lab == v)
+  
+  ann <- NULL
+  if (v == "DOC (µmol L)") {
+    ann <- list(
+      list(
+        x = 1999,
+        y = 1,
+        xref = "x",
+        yref = "paper",
+        text = "<b>Calcium treatment</b>",
+        showarrow = FALSE,
+        xanchor = "left",
+        yanchor = "top",
+        font = list(size = 9),
+        xshift = 5
+      )
+    )
+  }
+  
+  plot_ly(df_sub,
+          x = ~waterYr,
+          y = ~value,
+          type = "scatter",
+          mode = "lines+markers",
+          line = list(width = 0.4, color = "black"),
+          marker = list(size = 5, color = "black"),
+          showlegend = FALSE) %>%
+    
+    layout(
+      shapes = list(   # <-- your dashed 1999 line (unchanged)
+        list(
+          type = "line",
+          x0 = 1999, x1 = 1999,
+          y0 = 0, y1 = 1,
+          xref = "x",
+          yref = "paper",
+          line = list(color = "black", width = 0.8, dash = "dash")
+        )
+      ),
+      
+      annotations = ann,   # <-- this is the ONLY new addition
+      
+      xaxis = list(        # <-- keep your axis settings
+        range = c(1960, 2025),
+        tickvals = seq(1960, 2030, 10),
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showline = TRUE,
+        linecolor = "black",
+        linewidth = 0.4,
+        ticks = "outside",
+        tickfont = list(size = 8)
+      ),
+      
+      yaxis = list(        # <-- keep your y-axis settings
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showline = TRUE,
+        linecolor = "black",
+        linewidth = 0.4,
+        ticks = "outside",
+        tickfont = list(size = 8)
+      ),
+      
+      margin = list(l = 40, r = 10, t = 20, b = 30)  # <-- keep your margins
+    )
+})
+
+fig <- subplot(fig_list,
+               nrows = 6,
+               shareX = FALSE,
+               shareY = FALSE)
+
+annotations <- lapply(seq_len(n), function(i) {
+  # top of each panel
+  y_top <- 1 - (i - 1) / n
+  y_pos <- y_top - 0.04
+  
+  list(
+    x = 0.01,               # left side
+    y = y_pos,
+    xref = "paper",
+    yref = "paper",
+    text = paste0("<b>", vars_unique[i], "</b>"),
+    showarrow = FALSE,
+    xanchor = "left",
+    yanchor = "top",
+    font = list(size = 12),
+    align = "left"
+  )
+})
+
+fig <- fig %>%
+  layout(
+    annotations = annotations,
+    plot_bgcolor = "white",
+    paper_bgcolor = "white"
   )
 
+htmlwidgets::saveWidget(as_widget(fig), "Fig5_Streams.html")
 
-plot5
-plot5_plotly <- ggplotly(plot5, tooltip = c("x", "y", "color", height = 500)) |>
-  layout(
-    modebar = list(
-      bgcolor = "white",
-      color = "black",
-      activecolor = "#1B5E20"
-    ),
-    (margin = list(l=0, r=0, t=0, b=0)
-  ))
 
-plot5
-plot5_plotly
-htmlwidgets::saveWidget(as_widget(plot5_plotly), "Fig5_streams.html")

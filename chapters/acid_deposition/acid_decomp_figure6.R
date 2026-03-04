@@ -1,5 +1,6 @@
 library(tidyverse)
 library(plotly)
+library(dplyr)
 
 inUrl2 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/208/14/024b6acc5cb2e03a14fff5558bbffc0c"
 infile2 <- tempfile()
@@ -71,7 +72,7 @@ dt2 <- dt2 |>
 
 dt2Sums <-aggregate(list(annCa=dt2$Ca, annSiO2=dt2$SiO2, 
                                     annpH=dt2$pH, annANC=dt2$ANC960, 
-                                    annAl=dt2$AL, annDOC=dt2$DOC), 
+                                    annAl=dt2$TMAl, annDOC=dt2$DOC), 
                                by=list(waterYr=dt2$waterYr,site=dt2$site ),
                                FUN="mean", na.rm=TRUE)
 
@@ -100,40 +101,125 @@ new_labels <- c(
 )
 
 
-plot6 <- ggplot(dt2Sums, aes(waterYr, value, color = site)) +
-  geom_line(size = 0.4) +
-  geom_point() +
-  geom_vline(xintercept = 1999,
-             linetype = "dashed",
-             size = 0.2,
-             color = "black") +
-  facet_wrap(~ vars, nrow = 6, scales = "free_y", labeller = as_labeller(new_labels)) +
-  scale_color_manual(values = c(
-    "W1" = "grey",
-    "W6" = "black"
-  )) +
-  scale_x_continuous(
-    expand = c(0, 0),
-    limits = c(1960, 2025),
-    breaks = seq(1960, 2030, 10)
-  ) +
-  labs(x = NULL, y = NULL, color = NULL) +
-  theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    panel.border = element_rect(size = 0.4),
-    strip.background = element_blank(),
-    strip.text = element_text(size = 9),
-    axis.text = element_text(size = 8),
-    axis.ticks = element_line(size = 0.3),
-    legend.position = c(1, 0.9),
-    legend.text = element_text(size = 8),
-    legend.background = element_blank()
+
+dt2Sums <- dt2Sums %>%
+  mutate(vars_lab = new_labels[as.character(vars)])
+
+vars_unique <- unique(dt2Sums$vars_lab)
+n <- length(vars_unique)
+
+fig_list <- lapply(vars_unique, function(v) {
+  
+  df_sub <- dt2Sums %>% filter(vars_lab == v)
+  
+  ann <- NULL
+  if (v == "DOC (µmol L)") {   # <- change if needed
+    ann <- list(
+      list(
+        x = 1999,
+        y = 1,
+        xref = "x",
+        yref = "paper",
+        text = "<b>Calcium treatment</b>",
+        showarrow = FALSE,
+        xanchor = "left",
+        yanchor = "top",
+        font = list(size = 9),
+        xshift = 5
+      )
+    )
+  }
+  
+  plot_ly(df_sub,
+          x = ~waterYr,
+          y = ~value,
+          color = ~site,
+          colors = c("W1" = "grey", "W6" = "black"),
+          type = "scatter",
+          mode = "lines+markers",
+          line = list(width = 0.4),
+          marker = list(size = 5),
+          showlegend = TRUE) %>%
+    
+    layout(
+      shapes = list(
+        list(
+          type = "line",
+          x0 = 1999, x1 = 1999,
+          y0 = 0, y1 = 1,
+          xref = "x",
+          yref = "paper",
+          line = list(color = "black", width = 0.8, dash = "dash")
+        )
+      ),
+      
+      annotations = ann,   # <-- THIS is the key line
+      
+      xaxis = list(
+        range = c(1960, 2025),
+        tickvals = seq(1960, 2030, 10),
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showline = TRUE,
+        linecolor = "black",
+        linewidth = 0.4,
+        ticks = "outside",
+        tickfont = list(size = 8)
+      ),
+      
+      yaxis = list(
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showline = TRUE,
+        linecolor = "black",
+        linewidth = 0.4,
+        ticks = "outside",
+        tickfont = list(size = 8)
+      ),
+      
+      margin = list(l = 40, r = 10, t = 20, b = 30)
+    )
+})
+
+fig <- subplot(fig_list,
+               nrows = 6,
+               shareX = FALSE,
+               shareY = FALSE)
+
+# ---- facet strip labels (top left, bold) ----
+annotations <- lapply(seq_len(n), function(i) {
+  y_top <- 1 - (i - 1) / n
+  y_pos <- y_top - 0.04
+  
+  if (vars_unique[i] == "Ca2+ (µeq L)") {
+    y_pos <- y_top - 0.1   # increase this number to move it down
+  }
+  
+  list(
+    x = 0.01,
+    y = y_pos,
+    xref = "paper",
+    yref = "paper",
+    text = paste0("<b>", vars_unique[i], "</b>"),
+    showarrow = FALSE,
+    xanchor = "left",
+    yanchor = "top",
+    font = list(size = 12),
+    align = "left"
   )
+})
 
-
-plot6_plotly <- ggplotly(plot6, tooltip = c("x", "y", "color")) |>
+fig <- fig %>%
   layout(
+    annotations = annotations,
+    plot_bgcolor = "white",
+    paper_bgcolor = "white",
+    legend = list(
+      x = 1,
+      y = 0.9,
+      font = list(size = 8),
+      bgcolor = "rgba(0,0,0,0)"
+    ),
     modebar = list(
       bgcolor = "white",
       color = "black",
@@ -141,12 +227,6 @@ plot6_plotly <- ggplotly(plot6, tooltip = c("x", "y", "color")) |>
     )
   )
 
-plot6_plotly
-htmlwidgets::saveWidget(as_widget(plot6_plotly), "Fig6_streams.html")
-
-# figure 5
-streamDataW6 <- streamData |> 
-  filter(site == "W6")
-
+htmlwidgets::saveWidget(as_widget(fig), "Fig6_streams.html")
 
 
