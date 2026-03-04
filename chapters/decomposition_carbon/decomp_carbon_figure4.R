@@ -11,6 +11,7 @@ SoilMassData2 <- SoilMassData |>
   # where OM_LOI = -9999.99, other OM values are zero
   filter(OM_LOI != -9999.99)
 
+# sum organic matter per plot per year & convert units
 SoilMassData3 <- SoilMassData2 |>
   group_by(Year, Plot) |>
   summarize(OM = sum(OM_OM, na.rm = TRUE), .groups = "drop") |>
@@ -21,6 +22,7 @@ st.err <- function(x) {
   sd(x, na.rm = T) / sqrt(length(x))
 }
 
+# mean across plots to get yearly values 
 SoilMassData4 <- SoilMassData3 |>
   group_by(Year) |>
   summarize(
