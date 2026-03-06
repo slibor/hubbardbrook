@@ -7,9 +7,9 @@ SoilMassData <- read_csv(
 
 # basic cleaning
 SoilMassData2 <- SoilMassData |>
-  select("Year", "Plot", "OM_TM", "OM_OM", "OM_LOI") |>
-  # where OM_LOI = -9999.99, other OM values are zero
-  filter(OM_LOI != -9999.99)
+  select("Year", "Plot", "Horizon", "OM_TM", "OM_OM", "OM_LOI") |>
+  mutate(OM_LOI = na_if(OM_LOI, -9999.99)) |> 
+  filter(Horizon != "min")
 
 # sum organic matter per plot per year & convert units
 SoilMassData3 <- SoilMassData2 |>
@@ -19,10 +19,10 @@ SoilMassData3 <- SoilMassData2 |>
 
 # calculate SE
 st.err <- function(x) {
-  sd(x, na.rm = T) / sqrt(length(x))
+  sd(x, na.rm = TRUE) / sqrt(length(x))
 }
 
-# mean across plots to get yearly values 
+# mean across plots to get yearly values
 SoilMassData4 <- SoilMassData3 |>
   group_by(Year) |>
   summarize(
@@ -36,14 +36,14 @@ theme_set(theme_bw())
 
 plot1 <- ggplot(SoilMassData4, aes(Year, OM)) +
   geom_point(size = 4) +
-  labs(x = "Year", y = "Forest floor OM mass (Mg/ha)") +
-  geom_errorbar(aes(ymin = OM - se, ymax = OM + se)) +
+  geom_errorbar(aes(ymin = OM - se, ymax = OM + se), width = 2) +
   scale_y_continuous(
     expand = c(0, 0),
     limits = c(0, 120),
     breaks = c(0, 20, 40, 60, 80, 100)
   ) +
   scale_x_continuous(expand = c(0, 0), limits = c(1970, 2020)) +
+  labs(x = "Year", y = "Forest floor OM mass (Mg/ha)") +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -52,15 +52,16 @@ plot1 <- ggplot(SoilMassData4, aes(Year, OM)) +
 plot1
 
 # convert to plotly graph
-plot1_plotly <- ggplotly(plot1) |> layout(modebar = list(
+plotly1 <- ggplotly(plot1, margin = m) |> layout(modebar = list(
   bgcolor = "white",
   color = "black",
   activecolor = "#1B5E20"
 ))
-plot1_plotly
+plotly1
 
 htmlwidgets::saveWidget(
-  widget = plot1_plotly,
+  widget = plotly1,
+  # builds file path
   here::here(
     "chapters",
     "decomposition_carbon",
