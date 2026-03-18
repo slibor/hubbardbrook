@@ -105,7 +105,7 @@ new_labels1 <- c(
 
 
 
-dtSums <- dtSums %>%
+dtSums <- dtSums |> 
   mutate(vars_lab = new_labels1[as.character(vars)])
 
 vars_unique <- unique(dtSums$vars_lab)
@@ -113,7 +113,8 @@ n <- length(vars_unique)
 
 fig_list <- lapply(vars_unique, function(v) {
   
-  df_sub <- dtSums %>% filter(vars_lab == v)
+  df_sub <- dtSums |> 
+    filter(vars_lab == v)
   
   ann <- NULL
   if (v == "DOC (µmol L)") {
@@ -140,10 +141,10 @@ fig_list <- lapply(vars_unique, function(v) {
           mode = "lines+markers",
           line = list(width = 0.4, color = "black"),
           marker = list(size = 5, color = "black"),
-          showlegend = FALSE) %>%
+          showlegend = FALSE) |> 
     
     layout(
-      shapes = list(   # <-- your dashed 1999 line (unchanged)
+      shapes = list(
         list(
           type = "line",
           x0 = 1999, x1 = 1999,
@@ -154,9 +155,9 @@ fig_list <- lapply(vars_unique, function(v) {
         )
       ),
       
-      annotations = ann,   # <-- this is the ONLY new addition
+      annotations = ann,
       
-      xaxis = list(        # <-- keep your axis settings
+      xaxis = list(
         range = c(1960, 2025),
         tickvals = seq(1960, 2030, 10),
         showgrid = FALSE,
@@ -165,20 +166,20 @@ fig_list <- lapply(vars_unique, function(v) {
         linecolor = "black",
         linewidth = 0.4,
         ticks = "outside",
-        tickfont = list(size = 8)
+        tickfont = list(size = 12)
       ),
       
-      yaxis = list(        # <-- keep your y-axis settings
+      yaxis = list(
         showgrid = FALSE,
         zeroline = FALSE,
         showline = TRUE,
         linecolor = "black",
         linewidth = 0.4,
         ticks = "outside",
-        tickfont = list(size = 8)
+        tickfont = list(size = 12)
       ),
       
-      margin = list(l = 40, r = 10, t = 20, b = 30)  # <-- keep your margins
+      margin = list(l = 40, r = 10, t = 20, b = 30)
     )
 })
 
@@ -188,12 +189,11 @@ fig <- subplot(fig_list,
                shareY = FALSE)
 
 annotations <- lapply(seq_len(n), function(i) {
-  # top of each panel
   y_top <- 1 - (i - 1) / n
   y_pos <- y_top - 0.04
   
   list(
-    x = 0.01,               # left side
+    x = 0.01,
     y = y_pos,
     xref = "paper",
     yref = "paper",
@@ -206,13 +206,24 @@ annotations <- lapply(seq_len(n), function(i) {
   )
 })
 
-fig <- fig %>%
+fig <- fig |> 
   layout(
     annotations = annotations,
     plot_bgcolor = "white",
-    paper_bgcolor = "white"
+    paper_bgcolor = "white",
+    modebar = list(
+      bgcolor = "white",
+      color = "black",
+      activecolor = "#1B5E20"
+    )
   )
 
-htmlwidgets::saveWidget(as_widget(fig), "Fig5_Streams.html")
+output_file <- "StreamChem-W6_longtermTrends.html"
+fname <- tools::file_path_sans_ext(basename(output_file))
+
+fig |>
+  config(toImageButtonOptions = list(format = "png", filename = fname)) |>
+  htmlwidgets::saveWidget(file = output_file)
+
 
 

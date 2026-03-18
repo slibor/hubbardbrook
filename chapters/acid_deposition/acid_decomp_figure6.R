@@ -102,18 +102,21 @@ new_labels <- c(
 
 
 
-dt2Sums <- dt2Sums %>%
+dt2Sums <- dt2Sums |> 
   mutate(vars_lab = new_labels[as.character(vars)])
 
 vars_unique <- unique(dt2Sums$vars_lab)
 n <- length(vars_unique)
 
-fig_list <- lapply(vars_unique, function(v) {
+fig_list <- lapply(seq_along(vars_unique), function(i) {
   
-  df_sub <- dt2Sums %>% filter(vars_lab == v)
+  v <- vars_unique[i]
+  
+  df_sub <- dt2Sums |> 
+    filter(vars_lab == v)
   
   ann <- NULL
-  if (v == "DOC (µmol L)") {   # <- change if needed
+  if (v == "DOC (µmol L)") {
     ann <- list(
       list(
         x = 1999,
@@ -139,7 +142,7 @@ fig_list <- lapply(vars_unique, function(v) {
           mode = "lines+markers",
           line = list(width = 0.4),
           marker = list(size = 5),
-          showlegend = TRUE) %>%
+          showlegend = (i == 1)) |>
     
     layout(
       shapes = list(
@@ -152,9 +155,7 @@ fig_list <- lapply(vars_unique, function(v) {
           line = list(color = "black", width = 0.8, dash = "dash")
         )
       ),
-      
-      annotations = ann,   # <-- THIS is the key line
-      
+      annotations = ann,
       xaxis = list(
         range = c(1960, 2025),
         tickvals = seq(1960, 2030, 10),
@@ -164,9 +165,8 @@ fig_list <- lapply(vars_unique, function(v) {
         linecolor = "black",
         linewidth = 0.4,
         ticks = "outside",
-        tickfont = list(size = 8)
+        tickfont = list(size = 12)
       ),
-      
       yaxis = list(
         showgrid = FALSE,
         zeroline = FALSE,
@@ -174,9 +174,8 @@ fig_list <- lapply(vars_unique, function(v) {
         linecolor = "black",
         linewidth = 0.4,
         ticks = "outside",
-        tickfont = list(size = 8)
+        tickfont = list(size = 12)
       ),
-      
       margin = list(l = 40, r = 10, t = 20, b = 30)
     )
 })
@@ -186,13 +185,13 @@ fig <- subplot(fig_list,
                shareX = FALSE,
                shareY = FALSE)
 
-# ---- facet strip labels (top left, bold) ----
+
 annotations <- lapply(seq_len(n), function(i) {
   y_top <- 1 - (i - 1) / n
   y_pos <- y_top - 0.04
   
   if (vars_unique[i] == "Ca2+ (µeq L)") {
-    y_pos <- y_top - 0.1   # increase this number to move it down
+    y_pos <- y_top - 0.1
   }
   
   list(
@@ -209,7 +208,7 @@ annotations <- lapply(seq_len(n), function(i) {
   )
 })
 
-fig <- fig %>%
+fig <- fig |> 
   layout(
     annotations = annotations,
     plot_bgcolor = "white",
@@ -227,6 +226,11 @@ fig <- fig %>%
     )
   )
 
-htmlwidgets::saveWidget(as_widget(fig), "Fig6_streams.html")
+output_file <- "StreamChem-W1W6_longtermTrends.html"
+fname <- tools::file_path_sans_ext(basename(output_file))
+
+fig |>
+  config(toImageButtonOptions = list(format = "png", filename = fname)) |>
+  htmlwidgets::saveWidget(file = output_file)
 
 
