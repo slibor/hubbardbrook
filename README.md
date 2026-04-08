@@ -1,2 +1,3 @@
 Interactive graphs used to update an online book: A synthesis of scientific research at Hubbard Brook
-\n Created by Samantha Libor and Maryann Nwude
+
+Created by Samantha Libor and Maryann Nwude
