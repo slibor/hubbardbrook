@@ -28,6 +28,17 @@ ws1_data <-read.csv(infile1,header=F
                  "hli"    ), check.names=TRUE)
 unlink(infile1)
 
+# Alternate method to pull most recent data
+
+# setwd to folder in which this script resides
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# source the fetch table from EDI function
+# source("../../functions/getEDItable-function.R")
+
+# fetch the most recent version of the table from EDI
+# ws1_data <- get_edi_table(identifier = "446", entity_seq = 2)
+# Str(ws1_data)
 
 
 inUrl6  <- "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/448/1/ac44ba6b0f0aac1d8e5e270a63d0e009" 
@@ -55,6 +66,18 @@ ws6_data <-read.csv(infile6,header=F
                  "aspect_deg",     
                  "hli"    ), check.names=TRUE)
 unlink(infile6)
+
+# Alternate method to pull most recent data
+
+# setwd to folder in which this script resides
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# source the fetch table from EDI function
+# source("../../functions/getEDItable-function.R")
+
+# fetch the most recent version of the table from EDI
+# ws6_data <- get_edi_table(identifier = "448", entity_seq = 2)
+# Str(ws6_data)
 
 
 df <- bind_rows(ws1_data, ws6_data)
