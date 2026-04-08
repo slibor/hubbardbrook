@@ -232,11 +232,20 @@ fig <- fig |>
     xaxis6 = list(matches = "x")
   )
 
-output_file <- "StreamChem-W1W6_longtermTrends.html"
+
+
+output_file <- "chapters/acid_deposition/StreamChem-W1W6_longtermTrends.html"
+
 fname <- tools::file_path_sans_ext(basename(output_file))
 
-fig |>
-  config(toImageButtonOptions = list(format = "png", filename = fname)) |>
-  htmlwidgets::saveWidget(file = output_file)
+p <- fig |>
+  config(toImageButtonOptions = list(format = "png", filename = fname))
 
+# Write to temp dir where libdir can be relative
+tmp_html <- tempfile(fileext = ".html")
+htmlwidgets::saveWidget(p, file = tmp_html, selfcontained = TRUE)
+
+# Copy the single file to your desired output location
+file.copy(tmp_html, output_file, overwrite = TRUE)
+unlink(tmp_html)
 
