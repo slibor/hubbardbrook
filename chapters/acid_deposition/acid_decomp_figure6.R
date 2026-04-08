@@ -60,6 +60,21 @@ dt2 <-read.csv(infile2,header=F
                  "pHmetrohm"    ), check.names=TRUE)
 
 unlink(infile2)
+
+
+# Alternate method to pull most recent data
+
+# setwd to folder in which this script resides
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# source the fetch table from EDI function
+# source("../../functions/getEDItable-function.R")
+
+# fetch the most recent version of the table from EDI
+# dt2 <- get_edi_table(identifier = "208", entity_seq = 2)
+# Str(dt2)
+
+
 dt2 <- dt2 |> 
   filter(site == "W1" | site == "W6")
 
