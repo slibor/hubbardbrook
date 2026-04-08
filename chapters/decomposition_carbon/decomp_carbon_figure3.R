@@ -78,10 +78,22 @@ plot1_plotly <- ggplotly(plot1, margin=m) |>
   )
 plot1_plotly
 
-output_file <- "LongTerm_MassLost.html"
+
+
+output_file <- "chapters/decomposition_carbon/LongTerm_MassLost.html"
+
 fname <- tools::file_path_sans_ext(basename(output_file))
 
-plot1_plotly |>
-  config(toImageButtonOptions = list(format = "png", filename = fname)) |>
-  htmlwidgets::saveWidget(file = output_file)
+p <- plot1_plotly |>
+  config(toImageButtonOptions = list(format = "png", filename = fname))
+
+# Write to temp dir where libdir can be relative
+tmp_html <- tempfile(fileext = ".html")
+htmlwidgets::saveWidget(p, file = tmp_html, selfcontained = TRUE)
+
+# Copy the single file to your desired output location
+file.copy(tmp_html, output_file, overwrite = TRUE)
+unlink(tmp_html)
+
+
 
