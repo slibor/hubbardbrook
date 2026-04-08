@@ -29,6 +29,20 @@ data <-read.csv(infile1,header=F
 
 unlink(infile1)
 
+
+# Alternate method to pull most recent data
+
+# setwd to folder in which this script resides
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# source the fetch table from EDI function
+# source("../../functions/getEDItable-function.R")
+
+# fetch the most recent version of the table from EDI
+# data <- get_edi_table(identifier = "220", entity_seq = 2)
+# Str(data)
+
+
 data_sum <- data |> 
   group_by(TreeSpecies, ElapsedDays) |> 
   summarise(
