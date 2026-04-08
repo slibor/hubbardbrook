@@ -57,15 +57,18 @@ plotly1 <- ggplotly(plot1, margin = m) |> layout(modebar = list(
   color = "black",
   activecolor = "#1B5E20"
 ))
-plotly1
+plotly1 
 
-htmlwidgets::saveWidget(
-  widget = plotly1,
-  # builds file path
-  here::here(
-    "chapters",
-    "decomposition_carbon",
-    "Fig4_OrganicMatter.html"
-  ),
-  selfcontained = TRUE
-)
+output_file <- "chapters/decomposition_carbon/Fig4_OrganicMatter.html"
+fname <- tools::file_path_sans_ext(basename(output_file))
+
+plotly1 |>
+  config(toImageButtonOptions = list(format = "png", filename = fname))
+
+# Write to temp dir where libdir can be relative
+tmp_html <- tempfile(fileext = ".html")
+htmlwidgets::saveWidget(plotly1, file = tmp_html, selfcontained = TRUE)
+
+# Copy the single file to your desired output location
+file.copy(tmp_html, output_file, overwrite = TRUE)
+unlink(tmp_html)

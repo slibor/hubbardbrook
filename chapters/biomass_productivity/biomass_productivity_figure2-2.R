@@ -2,6 +2,13 @@ library(tidyverse)
 library(lubridate)
 library(plotly)
 
+# install and load devtools
+install.packages("devtools")
+library(devtools)
+# install and load HubbardBrookForestAnalytics
+devtools::install_github('kearutherford/HubbardBrookForestAnalytics')
+library(HubbardBrookForestAnalytics) 
+
 # HB Forest Analytics with R package 
 #install.packages("FAwR")
 library(FAwR) 

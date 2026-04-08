@@ -346,11 +346,15 @@ pfinal <- subplot(
   margin = 0.01
 )
 
-htmlwidgets::saveWidget(widget = pfinal,
-                        here::here(
-                          "chapters",
-                          "forest_management",
-                          "Fig8_StreamwaterCalcium.html"
-                        ),
-                        selfcontained = TRUE
-)
+# use temp dir so only html is saved 
+output_file <- "chapters/forest_management/Fig8_StreamwaterCalcium.html"
+fname <- tools::file_path_sans_ext(basename(output_file))
+
+pfinal |>
+  config(toImageButtonOptions = list(format = "png", filename = fname))
+
+tmp_html <- tempfile(fileext = ".html")
+htmlwidgets::saveWidget(pfinal, file = tmp_html, selfcontained = TRUE)
+
+file.copy(tmp_html, output_file, overwrite = TRUE)
+unlink(tmp_html)
