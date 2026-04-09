@@ -347,7 +347,7 @@ pfinal <- subplot(
 )
 
 # use temp dir so only html is saved 
-output_file <- "chapters/forest_management/Fig8_StreamwaterCalcium.html"
+output_file <- "chapters/forest_management/StreamwaterCalcium.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 
 pfinal |>

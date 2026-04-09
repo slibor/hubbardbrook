@@ -59,7 +59,7 @@ plotly1 <- ggplotly(plot1, margin = m) |> layout(modebar = list(
 ))
 plotly1 
 
-output_file <- "chapters/decomposition_carbon/Fig4_OrganicMatter.html"
+output_file <- "chapters/decomposition_carbon/OrganicMatter.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 
 plotly1 |>
