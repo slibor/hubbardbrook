@@ -1,4 +1,5 @@
-Interactive graphs used to update an online book: A synthesis of scientific research at Hubbard Brook
+Interactive graphs used to update an online book: A synthesis of scientific research at Hubbard Brook <br>
+Add additional plots by uploading html and R files to the repository under the appropriate chapter folder. <br>
 
 Created by Samantha Libor and Maryann Nwude <br> <br>
 
