@@ -1,14 +1,22 @@
 library(tidyverse)
 library(plotly)
+library(EDIutils)
 
-SoilMassData <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/172/3/775e243b7a2b67c0047498533bf5b9d1"
-)
+# Alternate method to pull most recent data
+# setwd to folder in which this script resides
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# source the fetch table from EDI function
+source("../../functions/getEDItable-function.R")
+
+# fetch the most recent version of the table from EDI
+SoilMassData <- get_edi_table(identifier = "172", entity_seq = 5)
+str(SoilMassData)
 
 # basic cleaning
 SoilMassData2 <- SoilMassData |>
   select("Year", "Plot", "Horizon", "OM_TM", "OM_OM", "OM_LOI") |>
-  mutate(OM_LOI = na_if(OM_LOI, -9999.99)) |> 
+  mutate(OM_LOI = na_if(OM_LOI, -9999.99)) |>
   filter(Horizon != "min")
 
 # sum organic matter per plot per year & convert units
@@ -57,8 +65,9 @@ plotly1 <- ggplotly(plot1, margin = m) |> layout(modebar = list(
   color = "black",
   activecolor = "#1B5E20"
 ))
-plotly1 
+plotly1
 
+setwd("../../") # jumps up 2 folders 
 output_file <- "chapters/decomposition_carbon/OrganicMatter.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 

@@ -1,26 +1,23 @@
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(EDIutils)
+
+# pull most recent data
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("../../functions/getEDItable-function.R")
 
 # read in and combine watersheds
-W2 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/4/19/a6aeef15070be913ee2f06f431b9b7a7"
-) |>
+W2 <- get_edi_table(identifier = "4", entity_seq = 1) |>
   mutate(Watershed = "W2")
 
-W4 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/6/19/54b3ae4a45a2bb6c7006c2ab45cf63b9"
-) |>
+W4 <- get_edi_table(identifier = "6", entity_seq = 1) |>
   mutate(Watershed = "W4")
 
-W5 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/7/19/c08ebaccab4fee5fb60f4eee77f06cb3"
-) |>
+W5 <- get_edi_table(identifier = "7", entity_seq = 1) |>
   mutate(Watershed = "W5")
 
-W6 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/8/19/3312389e77cc5fd06bc8a7c9019de0ed"
-) |>
+W6 <- get_edi_table(identifier = "8", entity_seq = 1) |>
   mutate(Watershed = "W6")
 
 All <- rbind(W2, W4, W5, W6) |>
@@ -117,7 +114,7 @@ g1 <- ggplot(fa1) +
     aes(x = wyear, y = W6),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -125,7 +122,7 @@ g1 <- ggplot(fa1) +
     aes(x = wyear, y = W2),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -157,7 +154,7 @@ g1 <- ggplot(fa1) +
     y = 7,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -167,7 +164,7 @@ g1 <- ggplot(fa1) +
     y = 6,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -185,7 +182,7 @@ g2 <- ggplot(fa2) +
     aes(x = wyear, y = W6),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -193,7 +190,7 @@ g2 <- ggplot(fa2) +
     aes(x = wyear, y = W4),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -224,7 +221,7 @@ g2 <- ggplot(fa2) +
     y = 3,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -234,7 +231,7 @@ g2 <- ggplot(fa2) +
     y = 2.6,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -254,7 +251,7 @@ g3 <- ggplot(fa3) +
     aes(x = wyear, y = W6),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -262,7 +259,7 @@ g3 <- ggplot(fa3) +
     aes(x = wyear, y = W5),
     shape = 21,
     size = 4,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -293,7 +290,7 @@ g3 <- ggplot(fa3) +
     y = 3,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "black"
   ) +
@@ -303,7 +300,7 @@ g3 <- ggplot(fa3) +
     y = 2.6,
     size = 4,
     shape = 21,
-    stroke = 1.5,
+    stroke = 1,
     color = "black",
     fill = "white"
   ) +
@@ -345,8 +342,10 @@ pfinal <- subplot(
   titleY = TRUE,
   margin = 0.01
 )
+pfinal
 
-# use temp dir so only html is saved 
+# use temp dir so only html is saved
+setwd("../../")
 output_file <- "chapters/forest_management/StreamwaterCalcium.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 

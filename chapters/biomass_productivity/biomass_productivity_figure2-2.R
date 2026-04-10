@@ -7,14 +7,14 @@ library(devtools)
 # devtools::install_github('kearutherford/HubbardBrookForestAnalytics')
 library(HubbardBrookForestAnalytics)
 
-W1 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/446/1/95498fa6cf9986255fae32c1924182d9"
-) |>
+# pull most recent data
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("../../functions/getEDItable-function.R")
+
+W1 <- get_edi_table(identifier = "446", entity_seq = 1) |>
   mutate(watershed = "Watershed 1")
 
-W6 <- read_csv(
-  "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/448/1/ac44ba6b0f0aac1d8e5e270a63d0e009"
-) |>
+W6 <- get_edi_table(identifier = "448", entity_seq = 1) |>
   mutate(watershed = "Watershed 6")
 
 all <- rbind(W1, W6)
@@ -82,6 +82,7 @@ plotly1 <- ggplotly(plot1, margin = m) |> layout(
 plotly1
 
 # use temp dir so only html is saved
+setwd("../../")
 output_file <- "chapters/biomass_productivity/Aboveground_Biomass.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 
