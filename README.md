@@ -3,6 +3,8 @@
 
 Created by Samantha Libor and Maryann Nwude <br> <br>
 
+Completed plots: <br> <br>
+
 [Forest Composition and Dynamics Basal Area Plot](chapters/forest_composition/BasalArea-W1W6_Trends.html) <br>
 
 [Decomposition and Soil Carbon Sequestration Long-Term Mass Lost Plot](chapters/decomposition_carbon/LongTerm_MassLost.html) <br>
