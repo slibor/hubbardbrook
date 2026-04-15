@@ -20,6 +20,7 @@
 
 ### Functionality
 These interactive plots can be integrated into the online platform for the Hubbard Brook online book. <br>
+The code for the plots has been uploaded into each chapter folder, as well as the html file for integration. <br>
 Users can interact with the plots by hovering over them to show the function bar, or also hovering over specific data points to see details. <br>
 The plots are also able to be zoomed in/out to focus on specific areas. <br> <br>
 
