@@ -1,6 +1,5 @@
 ## **Interactive graphs used to update an online book: A synthesis of scientific research at Hubbard Brook**
-### Add additional plots by uploading html and R files to the repository under the appropriate chapter folder. <br>
-
+### Add additional plots by uploading html and R files to the repository under the appropriate chapter folder.
 Created by Samantha Libor and Maryann Nwude <br> <br>
 
 Completed plots: <br>
