@@ -14,14 +14,16 @@ source("../../functions/getEDItable-function.R")
 dt <- get_edi_table(identifier = "208", entity_seq = 2)
 str(dt)
 
+# filter data to only include watershed 6 for this plot
 dt <- dt |>
   filter(site == "W6")
 
+# edit aluminum counts
 dt <- dt |>
   mutate(AL = coalesce(Al_ICP, 0) + coalesce(Al_ferron, 0),
          AL = na_if(AL, 0))
 
-
+# create annual mean counts of plotted features
 dtSums <- aggregate(
   list(
     annSO4 = dt$SO4,
@@ -36,6 +38,7 @@ dtSums <- aggregate(
   na.rm = TRUE
 )
 
+# pivot data to plot easier
 dtSums <- dtSums |>
   pivot_longer(
     cols = c(annSO4, annNO3, annpH, annANC, annAl, annDOC),
@@ -43,13 +46,14 @@ dtSums <- dtSums |>
     values_to = "value"
   )
 
-
+# convert variables to factors
 dtSums <- dtSums |>
   mutate(vars = factor(
     vars,
     levels = c("annSO4", "annNO3", "annpH", "annANC", "annAl", "annDOC")
   ))
 
+# edit labels to clean visualiation
 new_labels1 <- c(
   `annSO4` = "SO4 (µeq L)",
   `annNO3` = "NO3 (µeq L)",
@@ -59,14 +63,13 @@ new_labels1 <- c(
   `annDOC` = "DOC (µmol L)"
 )
 
-
-
+# create column of new labels
 dtSums <- dtSums |>
   mutate(vars_lab = new_labels1[as.character(vars)])
-
 vars_unique <- unique(dtSums$vars_lab)
 n <- length(vars_unique)
 
+# create subplots for each variable
 fig_list <- lapply(vars_unique, function(v) {
   df_sub <- dtSums |>
     filter(vars_lab == v)
@@ -192,11 +195,13 @@ fig <- fig |>
     xaxis6 = list(matches = "x")
   )
 
+# set working directory to main repository
 setwd("../../")
 output_file <- "chapters/acid_deposition/StreamChem-W6_longtermTrends.html"
 
 fname <- tools::file_path_sans_ext(basename(output_file))
 
+# set image button so downloaded png of plot has correct name
 p <- fig |>
   config(toImageButtonOptions = list(format = "png", filename = fname))
 
