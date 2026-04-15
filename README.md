@@ -16,12 +16,12 @@ Completed plots: <br>
 
 [Forest Biomass and Primary Productivity Aboveground Live Tree Biomass Plot](chapters/biomass_productivity/Aboveground_Biomass.html) <br>
 
-[Forest Management and Ecosystem Dynamics Streamwater Calcium Plot](chapters/forest_management/StreamwaterCalcium.html) <br>
+[Forest Management and Ecosystem Dynamics Streamwater Calcium Plot](chapters/forest_management/StreamwaterCalcium.html) <br> <br>
 
+### Functionality
+These interactive plots can be integrated into the online platform for the Hubbard Brook online book. <br>
+Users can interact with the plots by hovering over them to show the function bar, or also hovering over specific data points to see details. <br>
+The plots are also able to be zoomed in/out to focus on specific areas. <br> <br>
 
-These interactive plots can be integrated into the online platform for the Hubbard Brook online book.
-Users can interact with the plots by hovering over them to show the function bar, or also hovering over specific data points to see details.
-The plots are also able to be zoomed in/out to focus on specific areas. <br>
-
-
-We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. 
+### Accessing data
+We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. <br>
