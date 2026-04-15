@@ -45,5 +45,6 @@ unlink(tmp_html) <br>
 
 ### Contact information
 Please reach out with any questions about our code or developing these interactive plots. <br>
+
 Samantha Libor: slibor@vt.edu <br>
 Maryann Nwude: mnwude@vt.edu <br>
