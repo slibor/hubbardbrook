@@ -42,3 +42,9 @@ tmp_html <- tempfile(fileext = ".html") <br>
 htmlwidgets::saveWidget(plotly1, file = tmp_html, selfcontained = TRUE) <br>
 file.copy(tmp_html, output_file, overwrite = TRUE) <br>
 unlink(tmp_html) <br>
+
+### Contact information
+Please reach out with any questions about our code or developing these interactive plots. <br>
+
+Samantha Libor: slibor@vt.edu <br>
+Maryann Nwude: mnwude@vt.edu <br>
