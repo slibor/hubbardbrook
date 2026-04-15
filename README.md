@@ -24,5 +24,13 @@ The code for the plots has been uploaded into each chapter folder, as well as th
 Users can interact with the plots by hovering over them to show the function bar, or also hovering over specific data points to see details. <br>
 The plots are also able to be zoomed in/out to focus on specific areas. <br> <br>
 
+### Libraries used
+The libraries needed to run our code are:
+- tidyverse
+- plotly
+- EDIutils
+
 ### Accessing data
-We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. <br>
+We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. <br> 
+A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. <br>
+All neccessary data preprocessing and transformations are included in the provided R code for each visualization. <>
