@@ -34,3 +34,11 @@ The libraries needed to run our code are:
 We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. <br> 
 A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. <br>
 All neccessary data preprocessing and transformations are included in the provided R code for each visualization. <br>
+
+### Future additions
+To add additional plots, push to the repository chapter using this format to prevent unnecessary files from being added: <br>
+
+tmp_html <- tempfile(fileext = ".html") <br>
+htmlwidgets::saveWidget(plotly1, file = tmp_html, selfcontained = TRUE) <br>
+file.copy(tmp_html, output_file, overwrite = TRUE) <br>
+unlink(tmp_html) <br>
