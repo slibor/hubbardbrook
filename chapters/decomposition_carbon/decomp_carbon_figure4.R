@@ -2,7 +2,7 @@ library(tidyverse)
 library(plotly)
 library(EDIutils)
 
-# Alternate method to pull most recent data
+# Pull most recent data
 # setwd to folder in which this script resides
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -67,7 +67,7 @@ plotly1 <- ggplotly(plot1, margin = m) |> layout(modebar = list(
 ))
 plotly1
 
-setwd("../../") # jumps up 2 folders 
+setwd("../../") # jumps up 2 folders
 output_file <- "chapters/decomposition_carbon/OrganicMatter.html"
 fname <- tools::file_path_sans_ext(basename(output_file))
 

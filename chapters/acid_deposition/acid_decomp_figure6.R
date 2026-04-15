@@ -1,110 +1,54 @@
 library(tidyverse)
-library(plotly)
-library(dplyr)
+library(plotly) 
+library(EDIutils) 
 
-inUrl2 <- "https://pasta.lternet.edu/package/data/eml/knb-lter-hbr/208/14/024b6acc5cb2e03a14fff5558bbffc0c"
-infile2 <- tempfile()
-try(download.file(inUrl2,infile2,method="curl"))
-if (is.na(file.size(infile2))) download.file(inUrl2,infile2,method="auto")
-
-dt2 <- read.csv(infile2, header=F, skip=1, sep="", quot="")
-dt2 <-read.csv(infile2,header=F 
-               ,skip=1
-               ,sep=","  
-               ,quot='"' 
-               , col.names=c(
-                 "site",     
-                 "date",     
-                 "timeEST",     
-                 "barcode",     
-                 "pH",     
-                 "DIC",     
-                 "spCond",     
-                 "temp",     
-                 "ANC960",     
-                 "ANCMet",     
-                 "gageHt",     
-                 "hydroGraph",     
-                 "flowGageHt",     
-                 "fieldCode",     
-                 "notes",     
-                 "uniqueID",     
-                 "waterYr",     
-                 "Ca",     
-                 "Mg",     
-                 "K",     
-                 "Na",     
-                 "TMAl",     
-                 "OMAl",     
-                 "Al_ICP",
-                 "Al_ferron",
-                 "NH4",     
-                 "SO4",     
-                 "NO3",     
-                 "Cl",     
-                 "PO4",     
-                 "DOC",     
-                 "TDN",     
-                 "DON",     
-                 "SiO2",     
-                 "Mn",     
-                 "Fe",     
-                 "F",     
-                 "cationCharge",     
-                 "anionCharge",     
-                 "ionError",     
-                 "duplicate",     
-                 "sampleType",     
-                 "ionBalance",     
-                 "canonical",     
-                 "pHmetrohm"    ), check.names=TRUE)
-
-unlink(infile2)
-
-
-# Alternate method to pull most recent data
+# Pull most recent data
 
 # setwd to folder in which this script resides
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # source the fetch table from EDI function
-# source("../../functions/getEDItable-function.R")
+source("../../functions/getEDItable-function.R")
 
 # fetch the most recent version of the table from EDI
-# dt2 <- get_edi_table(identifier = "208", entity_seq = 2)
-# Str(dt2)
+dt2 <- get_edi_table(identifier = "208", entity_seq = 2)
+str(dt2)
 
-
-dt2 <- dt2 |> 
+dt2 <- dt2 |>
   filter(site == "W1" | site == "W6")
 
 dt2 <- dt2 |>
-  mutate(
-    AL = coalesce(Al_ICP, 0) + coalesce(Al_ferron, 0),
-    AL = na_if(AL, 0)
+  mutate(AL = coalesce(Al_ICP, 0) + coalesce(Al_ferron, 0),
+         AL = na_if(AL, 0))
+
+
+dt2Sums <- aggregate(
+  list(
+    annCa = dt2$Ca,
+    annSiO2 = dt2$SiO2,
+    annpH = dt2$pH,
+    annANC = dt2$ANC960,
+    annAl = dt2$TMAl,
+    annDOC = dt2$DOC
+  ),
+  by = list(waterYr = dt2$waterYr, site = dt2$site),
+  FUN = "mean",
+  na.rm = TRUE
+)
+
+dt2Sums <- dt2Sums |>
+  pivot_longer(
+    cols = c(annCa, annSiO2, annpH, annANC, annAl, annDOC),
+    names_to = "vars",
+    values_to = "value"
   )
 
 
-dt2Sums <-aggregate(list(annCa=dt2$Ca, annSiO2=dt2$SiO2, 
-                                    annpH=dt2$pH, annANC=dt2$ANC960, 
-                                    annAl=dt2$TMAl, annDOC=dt2$DOC), 
-                               by=list(waterYr=dt2$waterYr,site=dt2$site ),
-                               FUN="mean", na.rm=TRUE)
-
-dt2Sums <- dt2Sums |> 
-  pivot_longer(cols = c(annCa, annSiO2, annpH, annANC, annAl, annDOC),
-               names_to = "vars",
-               values_to = "value")
-
-
 dt2Sums <- dt2Sums |>
-  mutate(vars = factor(vars,
-                           levels = c("annCa",
-                                      "annSiO2",
-                                      "annpH",
-                                      "annANC",
-                                      "annAl",
-                                      "annDOC")))
+  mutate(vars = factor(
+    vars,
+    levels = c("annCa", "annSiO2", "annpH", "annANC", "annAl", "annDOC")
+  ))
 
 new_labels <- c(
   `annCa` = "Ca2+ (µeq L)",
@@ -116,18 +60,16 @@ new_labels <- c(
 )
 
 
-
-dt2Sums <- dt2Sums |> 
+dt2Sums <- dt2Sums |>
   mutate(vars_lab = new_labels[as.character(vars)])
 
 vars_unique <- unique(dt2Sums$vars_lab)
 n <- length(vars_unique)
 
 fig_list <- lapply(seq_along(vars_unique), function(i) {
-  
   v <- vars_unique[i]
   
-  df_sub <- dt2Sums |> 
+  df_sub <- dt2Sums |>
     filter(vars_lab == v)
   
   ann <- NULL
@@ -148,26 +90,34 @@ fig_list <- lapply(seq_along(vars_unique), function(i) {
     )
   }
   
-  plot_ly(df_sub,
-          x = ~waterYr,
-          y = ~value,
-          color = ~site,
-          colors = c("W1" = "grey", "W6" = "black"),
-          type = "scatter",
-          mode = "lines+markers",
-          line = list(width = 0.4),
-          marker = list(size = 5),
-          showlegend = (i == 1)) |>
+  plot_ly(
+    df_sub,
+    x = ~ waterYr,
+    y = ~ value,
+    color = ~ site,
+    colors = c("W1" = "grey", "W6" = "black"),
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(width = 0.4),
+    marker = list(size = 5),
+    showlegend = (i == 1)
+  ) |>
     
     layout(
       shapes = list(
         list(
           type = "line",
-          x0 = 1999, x1 = 1999,
-          y0 = 0, y1 = 1,
+          x0 = 1999,
+          x1 = 1999,
+          y0 = 0,
+          y1 = 1,
           xref = "x",
           yref = "paper",
-          line = list(color = "black", width = 0.8, dash = "dash")
+          line = list(
+            color = "black",
+            width = 0.8,
+            dash = "dash"
+          )
         )
       ),
       annotations = ann,
@@ -191,7 +141,12 @@ fig_list <- lapply(seq_along(vars_unique), function(i) {
         ticks = "outside",
         tickfont = list(size = 12)
       ),
-      margin = list(l = 40, r = 10, t = 20, b = 30)
+      margin = list(
+        l = 40,
+        r = 10,
+        t = 20,
+        b = 30
+      )
     )
 })
 
@@ -223,7 +178,7 @@ annotations <- lapply(seq_len(n), function(i) {
   )
 })
 
-fig <- fig |> 
+fig <- fig |>
   layout(
     annotations = annotations,
     plot_bgcolor = "white",
@@ -248,7 +203,7 @@ fig <- fig |>
   )
 
 
-
+setwd("../../")
 output_file <- "chapters/acid_deposition/StreamChem-W1W6_longtermTrends.html"
 
 fname <- tools::file_path_sans_ext(basename(output_file))
@@ -263,4 +218,3 @@ htmlwidgets::saveWidget(p, file = tmp_html, selfcontained = TRUE)
 # Copy the single file to your desired output location
 file.copy(tmp_html, output_file, overwrite = TRUE)
 unlink(tmp_html)
-
