@@ -3,7 +3,7 @@
 
 Created by Samantha Libor and Maryann Nwude <br> <br>
 
-Completed plots: <br> <br>
+Completed plots: <br>
 
 [Forest Composition and Dynamics Basal Area Plot](chapters/forest_composition/BasalArea-W1W6_Trends.html) <br>
 
