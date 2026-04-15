@@ -28,8 +28,8 @@ The plots are also able to be zoomed in/out to focus on specific areas. <br> <br
 The libraries needed to run our code are:
 - tidyverse
 - plotly
-- EDIutils
-
+- EDIutils <br>
+  
 ### Accessing data
 We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. <br> 
 A function is provided in the functions folder: getEDItable-function.R to access the most recent update of each dataset. <br>
