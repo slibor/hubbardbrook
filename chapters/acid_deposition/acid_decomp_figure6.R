@@ -14,9 +14,11 @@ source("../../functions/getEDItable-function.R")
 dt2 <- get_edi_table(identifier = "208", entity_seq = 2)
 str(dt2)
 
+# filter data to watersheds 1 and 6 for this plot
 dt2 <- dt2 |>
   filter(site == "W1" | site == "W6")
 
+# calculate aluminum
 dt2 <- dt2 |>
   mutate(AL = coalesce(Al_ICP, 0) + coalesce(Al_ferron, 0),
          AL = na_if(AL, 0))
