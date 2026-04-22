@@ -55,262 +55,87 @@ annual_sum <- annual_sum |>
   mutate(flow_m = flow_mm / 1000) |>
   mutate(Ca_mg = Ca_flux * 1000)
 
+# add in areas for conversions
+watershed_areas = c(
+  W2 = 15.6,
+  W4 = 36.1, 
+  W5 = 21.9,
+  W6 = 13.2
+)
 
-# spread annual_sum, then subset each watershed 
-Ca <- spread(annual_sum, "Watershed", "Ca_mg")
-Fl <- spread(annual_sum, "Watershed", "flow_m")
-
-# Ca conc in grams, multiply by hectares to just get grams)
-Ca <- Ca |>
-  mutate(W2 = W2 * 15.6) |>
-  mutate(W4 = W4 * 36.1) |>
-  mutate(W5 = W5 * 21.9) |>
-  mutate(W6 = W6 * 13.2)
-
-# Water is in meters, multiply by area of watershed in meters
-Fl <- Fl |>
-  mutate(W2 = W2 * 15.6 * 10000) |>
-  mutate(W4 = W4 * 36.1 * 10000) |>
-  mutate(W5 = W5 * 21.9 * 10000) |>
-  mutate(W6 = W6 * 13.2 * 10000)
-
-# convert from wide to long 
-cag <- gather(Ca, "Watershed", "Ca_mg", 5:8)
-flag <- gather(Fl, "Watershed", "flow_m3", 5:8)
-
-# convert to liters 
-flag <- flag |>
-  mutate(flow_L = flow_m3 * 1000)
-
-cag <- cag |>
-  mutate(flow_L = flag$flow_L) |>
-  mutate(camgL = Ca_mg / flow_L)
+# multiply by area and convert to final concentration 
+annual_sum <- annual_sum |>
+  mutate(
+    area_ha = watershed_areas[Watershed], 
+    total_Ca_mg = Ca_mg * area_ha, 
+    flow_m3 = flow_m * area_ha * 10000
+    ) |> 
+  mutate(
+    flow_L = flow_m3 * 1000, 
+    Ca_mgL = total_Ca_mg / flow_L)
 
 # comparing all to watershed 6 
-fa <- spread(cag, "Watershed", "camgL")
-
-fa1 <- gather(fa, "Watershed", "camgL", c(7, 10))
-fa2 <- gather(fa, "Watershed", "camgL", c(8, 10))
-fa3 <- gather(fa, "Watershed", "camgL", c(9, 10))
-
-fa1 <- fa1[, c(1, 9, 10)]
-fa1 <- na.omit(fa1)
-fa1 <- spread(fa1, "Watershed", "camgL")
-
-fa2 <- fa2[, c(1, 9, 10)]
-fa2 <- na.omit(fa2)
-fa2 <- spread(fa2, "Watershed", "camgL")
-
-fa3 <- fa3[, c(1, 9, 10)]
-fa3 <- na.omit(fa3)
-fa3 <- spread(fa3, "Watershed", "camgL")
+compare_watersheds = annual_sum |>
+  select(Watershed, wyear, Ca_mgL) |> 
+  pivot_wider(
+    names_from = Watershed,
+    values_from = Ca_mgL
+  )
 
 # PLOTS
-theme_set(theme_bw())
 
-g1 <- ggplot(fa1) +
-  geom_line(aes(x = wyear, y = W6), size = 0.8, color = "black") +
-  geom_line(aes(x = wyear, y = W2), size = 0.8, color = "black") +
-  geom_point(
-    aes(x = wyear, y = W6),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  geom_point(
-    aes(x = wyear, y = W2),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  theme(
-    axis.text.x = element_text(size = 17),
-    axis.text.y = element_text(size = 17),
-    axis.title.x = element_text(size = 20),
-    axis.title.y     = element_text(size = 20),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.text      = element_text(size = 22),
-    plot.title = element_text(size = 26)
-  ) +
-  geom_text(aes(x = 2008, y = 7, label = "treatment"),
-            size = 6 ,
-            color = "black") +
-  geom_text(aes(x = 2008, y = 6, label = "reference"),
-            size = 6,
-            color = "black") + ylab("Ca (mg/L)") + xlab("Water Year (June 1)") +
-  scale_x_continuous(
-    expand = c(0, 0),
-    limits = c(1960, 2023),
-    breaks = seq(1960, 2020, 5)
-  ) +
-  scale_y_continuous(limits = c(0, 9), breaks = seq(0, 8, 2)) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 7,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 6,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  geom_text(
-    aes(x = 1971, y = 8.5, label = "W2: devegetated in 1965-1968"),
-    size = 7,
-    color = "black"
-  )
+# plot function to simplify code 
+make_plot <- function(data, watershed, label_text, y_max) {
+  
+  ggplot(data) +
+    
+    # Reference watershed (W6)
+    geom_line(aes(x = wyear, y = W6), linewidth = 0.8, color = "black") +
+    geom_point(aes(x = wyear, y = W6), shape = 21, size = 4,
+               stroke = 1, color = "black", fill = "white") + 
+    geom_text(aes(x = 2008, y = y_max * 0.7, label = "reference"),
+              size = 6, color = "black") + 
+    annotate("point", x = 2004, y = y_max * 0.7, size = 4, shape = 21,
+             stroke = 1, color = "black", fill = "white") +
+    
+    # Treatment watershed (W2, W4, or W5)
+    geom_line(aes(x = wyear, y = watershed), linewidth = 0.8, color = "black") +
+    geom_point(aes(x = wyear, y = watershed), shape = 21, size = 4,
+               stroke = 1, color = "black", fill = "black") +
+    geom_text(aes(x = 2008, y = y_max * 0.8, label = "treatment"),
+              size = 6, color = "black") + 
+    annotate("point", x = 2004, y = y_max * 0.8, size = 4, shape = 21,
+             stroke = 1, color = "black", fill = "black") + 
+    
+    # labels and formatting 
+    labs(x = "Water Year (June 1)", y = "Ca (mg/L)") +
+    
+    scale_x_continuous(
+      limits = c(1960, 2023),
+      breaks = seq(1960, 2020, 5),
+      expand = c(0, 0)
+    ) +
+    
+    coord_cartesian(ylim = c(0, y_max), clip = "off") + # doesn't cut off text labels 
+    
+    annotate("text", x = 1975, y = y_max * 0.90, label = label_text, size = 6) +
+    
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.text = element_text(size = 16),
+      axis.title = element_text(size = 18)
+    )
+}
+
+g1 <- make_plot(compare_watersheds, compare_watersheds$W2, "W2: devegetated in 1965-1968", 9) +
+  scale_y_continuous(limits = c(0, 9), breaks = seq(0, 8, 2)) # fixes breaks 
 g1
 
-g2 <- ggplot(fa2) +
-  geom_line(aes(x = wyear, y = W6), size = 0.8, color = "black") +
-  geom_line(aes(x = wyear, y = W4), size = 0.8, color = "black") +
-  geom_point(
-    aes(x = wyear, y = W6),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  geom_point(
-    aes(x = wyear, y = W4),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  theme(
-    axis.text.x = element_text(size = 17),
-    axis.text.y = element_text(size = 17),
-    axis.title.x = element_text(size = 20),
-    axis.title.y     = element_text(size = 20),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.text      = element_text(size = 22),
-    plot.title = element_text(size = 26)
-  ) +
-  geom_text(aes(x = 2008, y = 3, label = "treatment"),
-            size = 6 ,
-            color = "black") +
-  geom_text(aes(x = 2008, y = 2.6, label = "reference"),
-            size = 6,
-            color = "black") + ylab("Ca (mg/L)") + xlab("Water Year (June 1)") +
-  scale_x_continuous(
-    expand = c(0, 0),
-    limits = c(1960, 2023),
-    breaks = seq(1960, 2020, 5)
-  ) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 3,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 2.6,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  ylim(0, 3.5) +
-  geom_text(
-    aes(x = 1972, y = 3.2, label = "W4: strip cut in 1970, 1972, 1974"),
-    size = 7 ,
-    color = "black"
-  )
+g2 <- make_plot(compare_watersheds, compare_watersheds$W4, "W4: strip cut in 1970, 1972, 1974", 3.5) 
 g2
 
-
-g3 <- ggplot(fa3) +
-  geom_line(aes(x = wyear, y = W6), size = 0.8, color = "black") +
-  geom_line(aes(x = wyear, y = W5), size = 0.8, color = "black") +
-  geom_point(
-    aes(x = wyear, y = W6),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  geom_point(
-    aes(x = wyear, y = W5),
-    shape = 21,
-    size = 4,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  theme(
-    axis.text.x = element_text(size = 17),
-    axis.text.y = element_text(size = 17),
-    axis.title.x = element_text(size = 20),
-    axis.title.y     = element_text(size = 20),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.text      = element_text(size = 22),
-    plot.title = element_text(size = 26)
-  ) +
-  geom_text(aes(x = 2008, y = 3, label = "treatment"),
-            size = 6 ,
-            color = "black") +
-  geom_text(aes(x = 2008, y = 2.6, label = "reference"),
-            size = 6,
-            color = "black") + ylab("Ca (mg/L)") + xlab("Water Year (June 1)") +
-  scale_x_continuous(
-    expand = c(0, 0),
-    limits = c(1960, 2023),
-    breaks = seq(1960, 2020, 5)
-  ) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 3,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "black"
-  ) +
-  annotate(
-    "point",
-    x = 2004,
-    y = 2.6,
-    size = 4,
-    shape = 21,
-    stroke = 1,
-    color = "black",
-    fill = "white"
-  ) +
-  ylim(0, 3.5) +
-  geom_text(
-    aes(x = 1973, y = 3.2, label = "W5: whole tree harvest in 1983, 1984"),
-    size = 7 ,
-    color = "black"
-  )
+g3 <- make_plot(compare_watersheds, compare_watersheds$W5, "W5: whole tree harvest in 1983, 1984", 3.5) 
 g3
 
 # convert to plotly graph
