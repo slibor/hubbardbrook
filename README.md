@@ -31,7 +31,7 @@ The libraries needed to run our code are:
   
 ### Accessing data
 We accessed the data through the EDI Data Portal. Code is provided in all R files to access the data needed for each plot. <br> 
-A function is provided in the functions folder: [getEDItable-function.R](chapters/functions/getEDItable-function.R) to access the most recent update of each dataset. <br>
+A function is provided in the functions folder: [getEDItable-function.R](functions/getEDItable-function.R) to access the most recent update of each dataset. <br>
 All neccessary data preprocessing and transformations are included in the provided R code for each visualization. <br>
 
 ### Future additions
