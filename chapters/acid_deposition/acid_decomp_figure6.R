@@ -18,12 +18,12 @@ str(dt2)
 dt2 <- dt2 |>
   filter(site == "W1" | site == "W6")
 
-# calculate aluminum
+# calculate aluminum values
 dt2 <- dt2 |>
   mutate(AL = coalesce(Al_ICP, 0) + coalesce(Al_ferron, 0),
          AL = na_if(AL, 0))
 
-
+# calculate annual means for the variables
 dt2Sums <- aggregate(
   list(
     annCa = dt2$Ca,
@@ -46,12 +46,14 @@ dt2Sums <- dt2Sums |>
   )
 
 
+# make the variable names factors
 dt2Sums <- dt2Sums |>
   mutate(vars = factor(
     vars,
     levels = c("annCa", "annSiO2", "annpH", "annANC", "annAl", "annDOC")
   ))
 
+# create better labels for clean visualization
 new_labels <- c(
   `annCa` = "Ca2+ (µeq L)",
   `annSiO2` = "SiO2 (µmol L)",
@@ -60,20 +62,19 @@ new_labels <- c(
   `annAl` = "Al (µmol L)",
   `annDOC` = "DOC (µmol L)"
 )
-
-
 dt2Sums <- dt2Sums |>
   mutate(vars_lab = new_labels[as.character(vars)])
 
 vars_unique <- unique(dt2Sums$vars_lab)
 n <- length(vars_unique)
 
+
+# this function creates subplots for each variable
 fig_list <- lapply(seq_along(vars_unique), function(i) {
   v <- vars_unique[i]
   
   df_sub <- dt2Sums |>
     filter(vars_lab == v)
-  
   ann <- NULL
   if (v == "DOC (µmol L)") {
     ann <- list(
@@ -91,7 +92,6 @@ fig_list <- lapply(seq_along(vars_unique), function(i) {
       )
     )
   }
-  
   plot_ly(
     df_sub,
     x = ~ waterYr,
@@ -104,7 +104,6 @@ fig_list <- lapply(seq_along(vars_unique), function(i) {
     marker = list(size = 5),
     showlegend = (i == 1)
   ) |>
-    
     layout(
       shapes = list(
         list(
@@ -152,12 +151,14 @@ fig_list <- lapply(seq_along(vars_unique), function(i) {
     )
 })
 
+# create the layout for the plot
 fig <- subplot(fig_list,
                nrows = 6,
                shareX = FALSE,
                shareY = FALSE)
 
 
+# apply the annotations for the labels for each subplot
 annotations <- lapply(seq_len(n), function(i) {
   y_top <- 1 - (i - 1) / n
   y_pos <- y_top - 0.04
@@ -165,7 +166,6 @@ annotations <- lapply(seq_len(n), function(i) {
   if (vars_unique[i] == "Ca2+ (µeq L)") {
     y_pos <- y_top - 0.1
   }
-  
   list(
     x = 0.01,
     y = y_pos,
@@ -180,6 +180,7 @@ annotations <- lapply(seq_len(n), function(i) {
   )
 })
 
+# create the plot with annotations and shared axes
 fig <- fig |>
   layout(
     annotations = annotations,
@@ -204,12 +205,15 @@ fig <- fig |>
     xaxis6 = list(matches = "x")
   )
 
+# This chunk creates the output
 
+# set working directory to main repository
 setwd("../../")
 output_file <- "chapters/acid_deposition/StreamChem-W1W6_longtermTrends.html"
 
 fname <- tools::file_path_sans_ext(basename(output_file))
 
+# set image button so downloaded png of plot has correct name
 p <- fig |>
   config(toImageButtonOptions = list(format = "png", filename = fname))
 
