@@ -69,11 +69,11 @@ dtSums <- dtSums |>
 vars_unique <- unique(dtSums$vars_lab)
 n <- length(vars_unique)
 
-# create subplots for each variable
+
+# this function creates subplots for each variable
 fig_list <- lapply(vars_unique, function(v) {
   df_sub <- dtSums |>
     filter(vars_lab == v)
-  
   ann <- NULL
   if (v == "DOC (µmol L)") {
     ann <- list(
@@ -91,7 +91,6 @@ fig_list <- lapply(vars_unique, function(v) {
       )
     )
   }
-  
   plot_ly(
     df_sub,
     x = ~ waterYr,
@@ -120,9 +119,7 @@ fig_list <- lapply(vars_unique, function(v) {
           )
         )
       ),
-      
       annotations = ann,
-      
       xaxis = list(
         range = c(1960, 2025),
         tickvals = seq(1960, 2030, 10),
@@ -134,7 +131,6 @@ fig_list <- lapply(vars_unique, function(v) {
         ticks = "outside",
         tickfont = list(size = 12)
       ),
-      
       yaxis = list(
         showgrid = FALSE,
         zeroline = FALSE,
@@ -144,7 +140,6 @@ fig_list <- lapply(vars_unique, function(v) {
         ticks = "outside",
         tickfont = list(size = 12)
       ),
-      
       margin = list(
         l = 40,
         r = 10,
@@ -154,11 +149,15 @@ fig_list <- lapply(vars_unique, function(v) {
     )
 })
 
+
+# create the layout for the plot
 fig <- subplot(fig_list,
                nrows = 6,
                shareX = FALSE,
                shareY = FALSE)
 
+
+# apply the annotations for the labels for each subplot
 annotations <- lapply(seq_len(n), function(i) {
   y_top <- 1 - (i - 1) / n
   y_pos <- y_top - 0.04
@@ -177,6 +176,7 @@ annotations <- lapply(seq_len(n), function(i) {
   )
 })
 
+# create the plot with annotations and shared axes
 fig <- fig |>
   layout(
     annotations = annotations,
@@ -194,6 +194,9 @@ fig <- fig |>
     xaxis5 = list(matches = "x"),
     xaxis6 = list(matches = "x")
   )
+
+
+# This chunk creates the output
 
 # set working directory to main repository
 setwd("../../")
