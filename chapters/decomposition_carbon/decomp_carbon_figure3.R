@@ -14,7 +14,7 @@ source("../../functions/getEDItable-function.R")
 data <- get_edi_table(identifier = "220", entity_seq = 1)
 str(data)
 
-
+# calculate average mass loss and standard error for each tree over incubation time
 data_sum <- data |>
   group_by(TreeSpecies, ElapsedDays) |>
   summarise(
@@ -23,6 +23,7 @@ data_sum <- data |>
     .groups = "drop"
   )
 
+# rename trees for easier analysis
 data_sum <- data_sum |>
   mutate(SpeciesName = recode(
     TreeSpecies,
@@ -32,6 +33,7 @@ data_sum <- data_sum |>
     YB = "Y Birch"
   ))
 
+# create the plot
 plot1 <- ggplot(data_sum,
                 aes(
                   ElapsedDays,
@@ -39,7 +41,6 @@ plot1 <- ggplot(data_sum,
                   linetype = SpeciesName,
                   shape = SpeciesName
                 )) +
-  
   geom_line() +
   geom_point(size = 2.5) +
   geom_errorbar(aes(ymin = mean_masslost - se, ymax = mean_masslost + se), width = 0) +
@@ -51,23 +52,25 @@ plot1 <- ggplot(data_sum,
   ) +
   theme_classic()
 
-plot1
 
-
+# convert the plot to plotly to be interactive
 plot1_plotly <- ggplotly(plot1, margin = m) |>
   layout(modebar = list(
     bgcolor = "white",
     color = "black",
     activecolor = "#1B5E20"
   ))
-plot1_plotly
 
 
+# This chunk creates the output
+
+# set working directory to main repository
 setwd("../../")
 output_file <- "chapters/decomposition_carbon/LongTerm_MassLost.html"
 
 fname <- tools::file_path_sans_ext(basename(output_file))
 
+# set image button so downloaded png of plot has correct name
 p <- plot1_plotly |>
   config(toImageButtonOptions = list(format = "png", filename = fname))
 
