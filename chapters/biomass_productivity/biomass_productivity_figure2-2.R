@@ -1,10 +1,11 @@
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(EDIutils)
 
-# install.packages("devtools")
+# install.packages("devtools") 
+# devtools::install_github('kearutherford/HubbardBrookForestAnalytics') 
 library(devtools)
-# devtools::install_github('kearutherford/HubbardBrookForestAnalytics')
 library(HubbardBrookForestAnalytics)
 
 # pull most recent data
@@ -30,6 +31,7 @@ all_agb <- HBEFBiomass(data_type = "external",
                        external_data = all_format,
                        results = "by_plot")
 
+# calculate standard error
 st.err <- function(x) {
   sd(x, na.rm = TRUE) / sqrt(length(x))
 }
@@ -59,7 +61,6 @@ plot1 <- ggplot(all_agb_sum, aes(year, agb, color = watershed, group = watershed
     # 10% padding
     breaks = c(1965, 1975, 1985, 1995, 2005, 2015, 2025)
   ) +
-  # scale_color_discrete(labels = c("Watershed 1", "Watershed 6")) +
   labs(x = "Year", y = "Aboveground Live Tree Biomass (Mg/ha⁻¹)") +
   theme_bw() +
   theme(

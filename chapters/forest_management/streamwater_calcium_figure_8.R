@@ -24,27 +24,25 @@ All <- rbind(W2, W4, W5, W6) |>
   mutate(across(where(is.double), ~ na_if(., -888.88)))
 head(All)
 
-# add in date
-All$DATE <- paste0(All$Year_Month, "-01")  # add day to year month string
-All$DATE <- ymd(All$DATE) # change how R interprets Date to be a date
+# format date and add water year
+All <- All |> 
+  # add day to year month string 
+  mutate(DATE = ymd(paste0(Year_Month, "-01"))) |> 
+  # water year starts in June 
+  mutate(wyear = year(DATE), 
+         wyear = if_else(month(DATE) < 6, wyear - 1, wyear)) 
 
-# add in water year
-w_year <- as.numeric(format(All$DATE, "%Y"))
+# only use complete water year 
+complete_wyear <- All |> 
+  count(wyear) |> 
+  mutate(Use = if_else(n < 40, "incomplete", "complete")) 
 
-june_july_sept <- as.numeric(format(All$DATE, "%m")) < 6
-w_year[june_july_sept] <- w_year[june_july_sept] - 1
-All$wyear <- w_year
+All_complete <- 
+  right_join(All, complete_wyear, by = "wyear") |> 
+  filter(Use == "complete") 
 
-# make sure you are only using complete years for the record
-monchem <- as.data.frame(table(All$wyear))
-
-monchem$wys <- paste(monchem$Var1)
-monchem[monchem$Freq < 40, "Use"] <- "incomplete wyear" # incomplete is less then 12 months
-monchem[is.na(monchem$Use), "Use"] <- "complete"
-All$Use <- monchem$Use[match(All$wyear, monchem$wys)]
-All_complete <- All[All$Use == "complete", ]
-
-manage <- All_complete |>
+# sum calcium flux and flow 
+annual_sum <- All_complete |>
   group_by(Watershed, wyear) |>
   summarize(
     Ca_flux = sum(Ca_flux, na.rm = TRUE),
@@ -52,16 +50,17 @@ manage <- All_complete |>
     .groups = "drop"
   )
 
-# units
-manage <- manage |>
+# convert units
+annual_sum <- annual_sum |>
   mutate(flow_m = flow_mm / 1000) |>
   mutate(Ca_mg = Ca_flux * 1000)
 
-# spread manage, then subset each watershed.
-Ca <- spread(manage, "Watershed", "Ca_mg")
-Fl <- spread(manage, "Watershed", "flow_m")
 
-# Ca conc  (is in grams, multiply by hectares to just get grams)
+# spread annual_sum, then subset each watershed 
+Ca <- spread(annual_sum, "Watershed", "Ca_mg")
+Fl <- spread(annual_sum, "Watershed", "flow_m")
+
+# Ca conc in grams, multiply by hectares to just get grams)
 Ca <- Ca |>
   mutate(W2 = W2 * 15.6) |>
   mutate(W4 = W4 * 36.1) |>
@@ -75,9 +74,11 @@ Fl <- Fl |>
   mutate(W5 = W5 * 21.9 * 10000) |>
   mutate(W6 = W6 * 13.2 * 10000)
 
+# convert from wide to long 
 cag <- gather(Ca, "Watershed", "Ca_mg", 5:8)
 flag <- gather(Fl, "Watershed", "flow_m3", 5:8)
 
+# convert to liters 
 flag <- flag |>
   mutate(flow_L = flow_m3 * 1000)
 
@@ -85,7 +86,7 @@ cag <- cag |>
   mutate(flow_L = flag$flow_L) |>
   mutate(camgL = Ca_mg / flow_L)
 
-
+# comparing all to watershed 6 
 fa <- spread(cag, "Watershed", "camgL")
 
 fa1 <- gather(fa, "Watershed", "camgL", c(7, 10))

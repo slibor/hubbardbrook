@@ -10,28 +10,28 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("../../functions/getEDItable-function.R")
 
 # fetch the most recent version of the table from EDI
-SoilMassData <- get_edi_table(identifier = "172", entity_seq = 5)
-str(SoilMassData)
+om_data <- get_edi_table(identifier = "172", entity_seq = 5)
+str(om_data) # organic matter data
 
 # basic cleaning
-SoilMassData2 <- SoilMassData |>
+om_clean <- om_data |>
   select("Year", "Plot", "Horizon", "OM_TM", "OM_OM", "OM_LOI") |>
   mutate(OM_LOI = na_if(OM_LOI, -9999.99)) |>
   filter(Horizon != "min")
 
 # sum organic matter per plot per year & convert units
-SoilMassData3 <- SoilMassData2 |>
+om_sum <- om_clean |>
   group_by(Year, Plot) |>
   summarize(OM = sum(OM_OM, na.rm = TRUE), .groups = "drop") |>
   mutate(Mg_ha = OM * 10)
 
-# calculate SE
+# calculate standard error
 st.err <- function(x) {
   sd(x, na.rm = TRUE) / sqrt(length(x))
 }
 
 # mean across plots to get yearly values
-SoilMassData4 <- SoilMassData3 |>
+om_mean <- om_sum |>
   group_by(Year) |>
   summarize(
     OM = mean(Mg_ha, na.rm = TRUE),
@@ -42,7 +42,7 @@ SoilMassData4 <- SoilMassData3 |>
 # PLOTS
 theme_set(theme_bw())
 
-plot1 <- ggplot(SoilMassData4, aes(Year, OM)) +
+plot1 <- ggplot(om_mean, aes(Year, OM)) +
   geom_point(size = 4) +
   geom_errorbar(aes(ymin = OM - se, ymax = OM + se), width = 2) +
   scale_y_continuous(
