@@ -9,7 +9,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # source the fetch table from EDI function
 source("../../functions/getEDItable-function.R")
 
-# fetch the most recent version of the table from EDI
+# fetch the most recent version of the table from EDI for watershed 1
 ws1_data <- get_edi_table(identifier = "446", entity_seq = 1)
 str(ws1_data)
 
@@ -19,11 +19,12 @@ source("../../functions/getEDItable-function.R")
 ws6_data1 <- get_edi_table(identifier = "448", entity_seq = 1)
 str(ws6_data)
 
+# combine watershed 1 and 6 data for live trees
 df <- bind_rows(ws1_data, ws6_data)
-
 df <- df |>
   filter(status == "Live")
 
+# was instructed to exclude these, no explanation why
 exclude_w1 <- c(1:7, 14:15, 23, 31, 32, 39, 41, 44, 48, 51, 55, 168)
 exclude_w6 <- c(1, 2, 4, 8, 9, 15:18, 24:27, 34, 35, 42)
 
@@ -39,6 +40,7 @@ df <- df |>
     species %in% c("ACSA", "BEAL", "FAGR")
   )
 
+# calculate basal area
 df <- df |>
   mutate(ba_m2 = pi * (dbh_cm / 200)^2 * exp_factor)
 
@@ -54,6 +56,7 @@ plot_frac <- plot_ba |>
   left_join(plot_total, by = c("watershed", "plot", "year")) |>
   mutate(frac = ba / total_ba)
 
+# calculate averages
 summary_df <- plot_frac |>
   group_by(watershed, year, species) |>
   summarise(
@@ -72,6 +75,7 @@ colors <- c(
   "FAGR" = "#619CFF"
 )
 
+# create plot for watershed 1 using plotly
 fig_W1 <- summary_df |>
   filter(watershed == "W1") |>
   plot_ly(
@@ -93,6 +97,7 @@ fig_W1 <- summary_df |>
     showlegend = TRUE
   )
 
+# create plot for watershed 6 using plotly
 fig_W6 <- summary_df |>
   filter(watershed == "W6", year >= 1990) |>
   plot_ly(
@@ -112,11 +117,10 @@ fig_W6 <- summary_df |>
     xaxis = list(title = "Year", range = c(1995, NA)),
     yaxis = list(title = "Relative Dominance")
   )
-
-
 n_W6 <- length(fig_W6$x$data)
 
 
+# create the layout for both plots together
 fig <- subplot(
   fig_W6,
   fig_W1,
@@ -197,13 +201,16 @@ fig <- subplot(
   style(showlegend = TRUE) |>
   style(showlegend = FALSE, traces = seq(3, length(fig_W1$x$data) * 2))
 
-fig
 
+# This chunk creates the output
+
+# set working directory to main repository
 setwd("../../")
 output_file <- "chapters/forest_composition/BasalArea-W1W6_Trends.html"
 
 fname <- tools::file_path_sans_ext(basename(output_file))
 
+# set image button so downloaded png of plot has correct name
 p <- fig |>
   config(toImageButtonOptions = list(format = "png", filename = fname))
 
